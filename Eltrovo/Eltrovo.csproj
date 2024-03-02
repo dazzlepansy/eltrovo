@@ -6,7 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="SSDEEP.NET" Version="1.0.0"/>
-    <PackageReference Include="System.Linq" Version="4.3.0"/>
+    <PackageReference Include="dotNetRdf" Version="3.1.1" />
+    <PackageReference Include="SSDEEP.NET" Version="1.0.0" />
+    <PackageReference Include="System.Linq" Version="4.3.0" />
   </ItemGroup>
 </Project>
