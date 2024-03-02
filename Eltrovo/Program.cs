@@ -1,11 +1,22 @@
 ﻿using SSDEEP.NET;
+using VDS.RDF;
+using VDS.RDF.Nodes;
 
 public class Eltrovo {
     public static void Main(string[] args) {
-        // This dictionary stores the fuzzy hash of each file. The key is the file path and the value is the hash.
-        var hashes = new Dictionary<string, string>();
-        // This dictionary stores the similarity rating between two files. The key is a tuple of both file paths, and the value is the similarity from 0 to 100.
-        var comparisons = new Dictionary<(string, string), int>();
+        // Graph of RDF triples.
+        var graph = new Graph();
+
+        // Establish some general-use nodes in the graph.
+        // These nodes come from the RiC ontology.
+        var ricoHasGeneticLink = graph.CreateUriNode(UriFactory.Create("https://www.ica.org/standards/RiC/ontology#hasGeneticLinkToRecordResource"));
+        var ricoHasInstantiation = graph.CreateUriNode(UriFactory.Create("https://www.ica.org/standards/RiC/ontology#hasOrHadInstantiation"));
+        var ricoIdentifier = graph.CreateUriNode(UriFactory.Create("https://www.ica.org/standards/RiC/ontology#identifier"));
+        var ricoInstantiation = graph.CreateUriNode(UriFactory.Create("https://www.ica.org/standards/RiC/ontology#Instantiation"));
+        var ricoNormalizedValue = graph.CreateUriNode(UriFactory.Create("https://www.ica.org/standards/RiC/ontology#normalizedValue"));
+        var ricoRecord = graph.CreateUriNode(UriFactory.Create("https://www.ica.org/standards/RiC/ontology#Record"));
+        // This is a generic one from RDF.
+        var rdfType = graph.CreateUriNode(UriFactory.Create("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"));
 
         // This list of extensions defines what files will be selected for comparison.
         var extensions = new List<string>() {
@@ -21,47 +32,75 @@ public class Eltrovo {
 
         // Define the directory to be scanned. All files will be compared with all other files.
         // This will be user-selectable through the UI when the front-end is built.
-        var target_dir = new DirectoryInfo("/home/user");
+        var targetDir = new DirectoryInfo("/home/user");
 
         // Loop through all files in a target directory if they have the desired extension and are larger than 1kb.
         // 1kb is an arbitrary number but it prevents a lot of matches between files that are too small for similarity to be meaningful.
-        foreach (var file in GetNonHiddenFiles(target_dir)
+        foreach (var file in GetNonHiddenFiles(targetDir)
         .Where(f => extensions.Contains(f.FullName.Split('.')[^1].ToLower()) && f.Length > 1000)){
             var buffer = File.ReadAllBytes(file.FullName);
-            // Save all file hashes to a dictionary.
-            hashes[file.FullName] = Hasher.HashBuffer(buffer, buffer.Length);
+
+            // Create a record and instantiation node for this file.
+            var recordNode = graph.CreateBlankNode();
+            graph.Assert(recordNode, rdfType, ricoRecord);
+            var instantiationNode = graph.CreateBlankNode(file.FullName);
+            graph.Assert(instantiationNode, rdfType, ricoInstantiation);
+            // Connect the record with its instantiation.
+            graph.Assert(recordNode, ricoHasInstantiation, instantiationNode);
+            // Save the file's fuzzy hash as the record's normalized value.
+            var hashNode = graph.CreateLiteralNode(Hasher.HashBuffer(buffer, buffer.Length));
+            graph.Assert(recordNode, ricoNormalizedValue, hashNode);
         }
 
-        // Compare the hash of every file to every other file.
-        foreach (var file1 in hashes.Keys) {
-            foreach (var file2 in hashes.Keys) {
-                // Build a tuple out of the two file paths in alphabetical order.
-                // This prevents doing the same comparison twice, once for (file1, file2) and once for (file2, file1).
-                (string, string) comparison_key;
-                if (string.Compare(file1, file2) < 0) {
-                    comparison_key = (file1, file2);
-                }
-                else {
-                    comparison_key = (file2, file1);
-                }
+        // Get all the record nodes.
+        var triples = graph.GetTriplesWithPredicateObject(rdfType, ricoRecord);
 
-                if (file1 != file2 && !comparisons.ContainsKey(comparison_key)) {
+        var checkedPairs = new List<List<INode>>();
+
+        // Compare the hash of every file to every other file.
+        foreach (var triple1 in triples) {
+            var hash1 = graph.GetTriplesWithSubjectPredicate(triple1.Subject, ricoNormalizedValue).Single().Object.AsValuedNode().AsString();
+            foreach (var triple2 in triples) {
+                if (triple1.Subject != triple2.Subject  // Don't compare a node with itself.
+                && !checkedPairs.Where(_ => _.Contains(triple1.Subject) && _.Contains(triple2.Subject)).Any()) {   // Or if we've already compared the two.
+                    var hash2 = graph.GetTriplesWithSubjectPredicate(triple2.Subject, ricoNormalizedValue).Single().Object.AsValuedNode().AsString();
                     // ssdeep can only compare files with the same block size or block size times two.
-                    int.TryParse(hashes[file1].Split(":")[0], out var block_size1);
-                    int.TryParse(hashes[file2].Split(":")[0], out var block_size2);
+                    int.TryParse(hash1.Split(":")[0], out var block_size1);
+                    int.TryParse(hash2.Split(":")[0], out var block_size2);
                     if (block_size1 == block_size2 || block_size1 == block_size2 * 2 || block_size2 == block_size1 * 2) {
                         // Compare the two hashes and save the result.
-                        comparisons[comparison_key] = Comparer.Compare(hashes[file1], hashes[file2]);
+                        var similarity = Comparer.Compare(hash1, hash2);
+
+                        if (similarity == 100) {
+                            // If the two are identical, delete the second record and attch its instantiation to the first record.
+                            var oldTriples = graph.GetTriplesWithSubjectPredicate(triple2.Subject, ricoHasInstantiation);
+                            foreach (var oldTriple in oldTriples) {
+                                // Attach the second triple's instantation to the first triple's record.
+                                graph.Assert(triple1.Subject, ricoHasInstantiation, oldTriple.Object);
+                                // I'm not sure we can actually delete a node --- just retract its triples.
+                                graph.Retract(oldTriple);
+                            }
+                        }
+                        else if (similarity > 49) {
+                            // If two files are sufficiently similar, create a "genetic link" between the two records.
+                            graph.Assert(triple1.Subject, ricoHasGeneticLink, triple2.Subject);
+                        }
                     }
+
+                    // Log the fact that we've cheked these two triples.
+                    checkedPairs.Add(new List<INode>() { triple1.Subject, triple2.Subject });
                 }
             }
         }
 
-        // Print out all matches and their similarity rating out of 100.
-        foreach (var key in comparisons.Keys) {
-            // Only print out the matches with a rating of 50 or more. This seems to filter out a lot of false positives.
-            if (comparisons[key] > 49) {
-                Console.WriteLine(key + ": " + comparisons[key]);
+        // Output all linked records/instantiations to the console.
+        foreach (var triple in graph.GetTriplesWithPredicate(ricoHasGeneticLink)) {
+            var subjectInstantiations = graph.GetTriplesWithSubjectPredicate(triple.Subject, ricoHasInstantiation);
+            var objectInstantiations = graph.GetTriplesWithSubjectPredicate(triple.Object, ricoHasInstantiation);
+            foreach (var subjectInstantiation in subjectInstantiations) {
+                foreach (var objectInstantiation in objectInstantiations) {
+                    Console.WriteLine(subjectInstantiation.Object.ToString() + " has genetic link to " + objectInstantiation.Object.ToString());
+                }
             }
         }
     }
