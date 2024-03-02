@@ -1,7 +1,4 @@
-﻿using System;
-
-using SSDEEP.NET;
-using System.Linq;
+﻿using SSDEEP.NET;
 
 public class Eltrovo {
     public static void Main(string[] args) {
@@ -14,6 +11,7 @@ public class Eltrovo {
         var extensions = new List<string>() {
             "doc",
             "docx",
+            "epub",
             "md",
             "odt",
             "pdf",
