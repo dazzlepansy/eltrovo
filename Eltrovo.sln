@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eltrovo", "Eltrovo\Eltrovo.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EltrovoUI", "EltrovoUI\EltrovoUI.csproj", "{4405D602-2608-4A1C-BB3F-0C24E2F5F5B2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", "{E2A7220B-DB38-42FE-AE7F-9295B648F58C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{4405D602-2608-4A1C-BB3F-0C24E2F5F5B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4405D602-2608-4A1C-BB3F-0C24E2F5F5B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4405D602-2608-4A1C-BB3F-0C24E2F5F5B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2A7220B-DB38-42FE-AE7F-9295B648F58C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2A7220B-DB38-42FE-AE7F-9295B648F58C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2A7220B-DB38-42FE-AE7F-9295B648F58C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2A7220B-DB38-42FE-AE7F-9295B648F58C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
