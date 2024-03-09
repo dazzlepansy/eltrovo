@@ -4,18 +4,47 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using ReactiveUI;
 
 namespace EltrovoUI.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    [ObservableProperty]
     private string? _inFolderPath;
+    public string? InFolderPath
+    {
+        get
+        {
+            return _inFolderPath;
+        }
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _inFolderPath, value);
+            Enabled = InFolderPath is not null && OutFilePath is not null;
+        }
+    }
 
-    [ObservableProperty]
     private string? _outFilePath;
+    public string? OutFilePath
+    {
+        get
+        {
+            return _outFilePath;
+        }
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _outFilePath, value);
+            Enabled = InFolderPath is not null && OutFilePath is not null;
+        }
+    }
+
+    private bool _enabled;
+    public bool Enabled
+    {
+        get => _enabled;
+        set => this.RaiseAndSetIfChanged(ref _enabled, value);
+    }
 
     [RelayCommand]
     private async Task SelectInputFolder(CancellationToken token)

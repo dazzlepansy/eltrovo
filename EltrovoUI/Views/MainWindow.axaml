@@ -19,13 +19,13 @@
         <StackPanel Margin="20">
             <Button Margin="0 5" Command="{Binding SelectInputFolderCommand}">Select Folder</Button>
             <TextBox Text="{Binding InFolderPath, Mode=TwoWay}" 
-                 AcceptsReturn="True" 
-                 AcceptsTab="True" />
+                 AcceptsReturn="False" 
+                 AcceptsTab="False" />
             <Button Margin="0 5" Command="{Binding SelectOutputFileCommand}">Select Output File</Button>
             <TextBox Text="{Binding OutFilePath, Mode=TwoWay}" 
-                 AcceptsReturn="True" 
-                 AcceptsTab="True" />
-            <Button Margin="0 5" Command="{Binding RunFolderCommand}">Find Matches</Button>
+                 AcceptsReturn="False" 
+                 AcceptsTab="False" />
+            <Button Margin="0 5" Command="{Binding RunFolderCommand}" IsEnabled="{Binding Enabled}">Find Matches</Button>
         </StackPanel>
     </DockPanel>
 
