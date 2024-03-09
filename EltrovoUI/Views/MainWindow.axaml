@@ -15,6 +15,10 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    <DockPanel LastChildFill="True">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
+            <Button Command="{Binding OpenFolderCommand}">Select Folder</Button>
+        </StackPanel>
+    </DockPanel>
 
 </Window>
