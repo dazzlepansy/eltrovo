@@ -16,8 +16,16 @@
     </Design.DataContext>
 
     <DockPanel LastChildFill="True">
-        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
-            <Button Command="{Binding OpenFolderCommand}">Select Folder</Button>
+        <StackPanel Margin="20">
+            <Button Margin="0 5" Command="{Binding SelectInputFolderCommand}">Select Folder</Button>
+            <TextBox Text="{Binding InFolderPath, Mode=TwoWay}" 
+                 AcceptsReturn="True" 
+                 AcceptsTab="True" />
+            <Button Margin="0 5" Command="{Binding SelectOutputFileCommand}">Select Output File</Button>
+            <TextBox Text="{Binding OutFilePath, Mode=TwoWay}" 
+                 AcceptsReturn="True" 
+                 AcceptsTab="True" />
+            <Button Margin="0 5" Command="{Binding RunFolderCommand}">Find Matches</Button>
         </StackPanel>
     </DockPanel>
 

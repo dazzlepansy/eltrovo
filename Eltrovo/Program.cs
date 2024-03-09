@@ -1,5 +1,5 @@
 ﻿public class Eltrovo {
     public static void Main(string[] args) {
-        HashingOperations.GetSsdeepHashes(args[0]);
+        HashingOperations.GetSsdeepHashes(args[0], args[1]);
     }
 }

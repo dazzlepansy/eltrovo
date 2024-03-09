@@ -1,9 +1,10 @@
 using SSDEEP.NET;
 using VDS.RDF;
 using VDS.RDF.Nodes;
+using VDS.RDF.Writing;
 
 public class HashingOperations {
-    public static void GetSsdeepHashes(string path) {
+    public static void GetSsdeepHashes(string inputPath, string outputPath) {
         // Graph of RDF triples.
         var graph = new Graph();
 
@@ -32,7 +33,7 @@ public class HashingOperations {
 
         // Define the directory to be scanned. All files will be compared with all other files.
         // This will be user-selectable through the UI when the front-end is built.
-        var targetDir = new DirectoryInfo(path);
+        var targetDir = new DirectoryInfo(inputPath);
 
         // Loop through all files in a target directory if they have the desired extension and are larger than 1kb.
         // 1kb is an arbitrary number but it prevents a lot of matches between files that are too small for similarity to be meaningful.
@@ -93,16 +94,9 @@ public class HashingOperations {
             }
         }
 
-        // Output all linked records/instantiations to the console.
-        foreach (var triple in graph.GetTriplesWithPredicate(ricoHasGeneticLink)) {
-            var subjectInstantiations = graph.GetTriplesWithSubjectPredicate(triple.Subject, ricoHasInstantiation);
-            var objectInstantiations = graph.GetTriplesWithSubjectPredicate(triple.Object, ricoHasInstantiation);
-            foreach (var subjectInstantiation in subjectInstantiations) {
-                foreach (var objectInstantiation in objectInstantiations) {
-                    Console.WriteLine(subjectInstantiation.Object.ToString() + " has genetic link to " + objectInstantiation.Object.ToString());
-                }
-            }
-        }
+        //Save to a file.
+        RdfXmlWriter rdfxmlwriter = new RdfXmlWriter();
+        rdfxmlwriter.Save(graph, outputPath);
     }
 
     /// <summary>

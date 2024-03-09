@@ -4,27 +4,50 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace EltrovoUI.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    [RelayCommand]
-    private async Task OpenFolder(CancellationToken token)
-    {
-        var folder = await DoOpenFilePickerAsync();
+    [ObservableProperty]
+    private string? _inFolderPath;
 
-        var path = folder?.TryGetLocalPath();
-            
-        if (path is not null) {
-            HashingOperations.GetSsdeepHashes(path);
+    [ObservableProperty]
+    private string? _outFilePath;
+
+    [RelayCommand]
+    private async Task SelectInputFolder(CancellationToken token)
+    {
+        var folder = await DoOpenFolderPickerAsync();
+
+        InFolderPath = folder?.TryGetLocalPath();
+
+        return;
+    }
+
+    [RelayCommand]
+    private async Task SelectOutputFile(CancellationToken token)
+    {
+        var file = await DoSaveFilePickerAsync();
+
+        OutFilePath = file?.TryGetLocalPath();
+
+        return;
+    }
+
+    [RelayCommand]
+    private async Task RunFolder(CancellationToken token)
+    {
+        if (InFolderPath is not null) {
+            HashingOperations.GetSsdeepHashes(InFolderPath, OutFilePath);
         }
 
         return;
     }
 
-    private async Task<IStorageFolder?> DoOpenFilePickerAsync()
+    private async Task<IStorageFolder?> DoOpenFolderPickerAsync()
     {
         // For learning purposes, we opted to directly get the reference
         // for StorageProvider APIs here inside the ViewModel. 
@@ -44,5 +67,26 @@ public partial class MainWindowViewModel : ViewModelBase
         });
 
         return folders?.Count >= 1 ? folders[0] : null;
+    }
+
+    private async Task<IStorageFile?> DoSaveFilePickerAsync()
+    {
+        // For learning purposes, we opted to directly get the reference
+        // for StorageProvider APIs here inside the ViewModel. 
+
+        // For your real-world apps, you should follow the MVVM principles
+        // by making service classes and locating them with DI/IoC.
+
+        // See IoCFileOps project for an example of how to accomplish this.
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop ||
+            desktop.MainWindow?.StorageProvider is not { } provider)
+            throw new NullReferenceException("Missing StorageProvider instance.");
+
+        var file = await provider.SaveFilePickerAsync(new FilePickerSaveOptions()
+        {
+            Title = "Output File"
+        });
+
+        return file;
     }
 }
