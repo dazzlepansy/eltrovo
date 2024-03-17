@@ -11,6 +11,7 @@ public class HashingOperations {
         // Establish some general-use nodes in the graph.
         // These nodes come from the RiC ontology.
         var ricoHasGeneticLink = graph.CreateUriNode(UriFactory.Create("https://www.ica.org/standards/RiC/ontology#hasGeneticLinkToRecordResource"));
+        var ricoHasIdentifier = graph.CreateUriNode(UriFactory.Create("https://www.ica.org/standards/RiC/ontology#hasOrHadIdentifier"));
         var ricoHasInstantiation = graph.CreateUriNode(UriFactory.Create("https://www.ica.org/standards/RiC/ontology#hasOrHadInstantiation"));
         var ricoIdentifier = graph.CreateUriNode(UriFactory.Create("https://www.ica.org/standards/RiC/ontology#identifier"));
         var ricoInstantiation = graph.CreateUriNode(UriFactory.Create("https://www.ica.org/standards/RiC/ontology#Instantiation"));
@@ -44,7 +45,8 @@ public class HashingOperations {
             // Create a record and instantiation node for this file.
             var recordNode = graph.CreateBlankNode();
             graph.Assert(recordNode, rdfType, ricoRecord);
-            var instantiationNode = graph.CreateBlankNode(file.FullName);
+            var instantiationNode = graph.CreateBlankNode();
+            graph.Assert(instantiationNode, ricoHasIdentifier, graph.CreateLiteralNode(file.FullName));
             graph.Assert(instantiationNode, rdfType, ricoInstantiation);
             // Connect the record with its instantiation.
             graph.Assert(recordNode, ricoHasInstantiation, instantiationNode);
