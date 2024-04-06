@@ -70,7 +70,10 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task RunFolder(CancellationToken token)
     {
         if (InFolderPath is not null) {
-            HashingOperations.GetSsdeepHashes(InFolderPath, OutFilePath);
+            var fileset = new HashingOperations(InFolderPath);
+            fileset.FindBinaryMatches();
+            fileset.FindPerceptualMatches();
+            fileset.SaveGraph(OutFilePath);
         }
 
         return;

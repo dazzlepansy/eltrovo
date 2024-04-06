@@ -7,7 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CoenM.ImageSharp.ImageHash" Version="1.3.6" />
     <PackageReference Include="dotNetRdf" Version="3.1.1" />
+    <PackageReference Include="MimeMapping" Version="3.0.1" />
     <PackageReference Include="SSDEEP.NET" Version="1.0.0" />
   </ItemGroup>
 
