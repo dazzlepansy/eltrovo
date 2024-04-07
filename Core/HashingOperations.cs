@@ -191,7 +191,7 @@ public class HashingOperations {
                 && !checkedPairs.Where(_ => _.Contains(record1) && _.Contains(record2)).Any()) {   // Or if we've already compared the two.
                     var similarity = GetPerceptualSimilarity(record1, record2);
                     
-                    if (similarity > 49) {
+                    if (similarity > 70) {
                         // If two files are sufficiently similar, create a "genetic link" between the two records.
                         _graph.Assert(record1, _ricoHasGeneticLink, record2);
                     }
